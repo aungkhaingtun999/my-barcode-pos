@@ -20,7 +20,6 @@ def show_refund():
 
     # 3. Data Fetching
     try:
-        # ဒီနေရာမှာ supabase.table() ကို ခေါ်ပါတယ်
         response = supabase.table("sales").select("*").order("id", desc=True).execute()
         sales_data = response.data
     except Exception as e:
@@ -40,11 +39,11 @@ def show_refund():
         items = json.loads(inv.get('item', '[]')) if isinstance(inv.get('item'), str) else inv.get('item', [])
 
         with st.form("refund_form"):
+            # Checkbox များအတွက် unique key ပေးထားခြင်း
             check_states = {i: st.checkbox(f"{item.get('product_name', 'Item')}", key=f"check_{i}") for i, item in enumerate(items)}
             submitted = st.form_submit_button("⚠️ Process Refund")
             
             if submitted:
-                # သင်၏ Refund Logic ကို ဒီမှာ ထည့်ပါ
                 st.session_state.msg = "✅ Refund processed successfully!"
                 st.rerun() 
 
