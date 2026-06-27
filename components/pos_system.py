@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import uuid  # <--- ဒီစာကြောင်းလေး ထည့်ပေးပါ
 from datetime import datetime
 from database import save_sale
