@@ -1,9 +1,20 @@
-﻿import streamlit as st
+import sys
+import os
+
+# Root directory ကို path ထဲသို့ ထည့်ခြင်း
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(current_dir)
+if root_dir not in sys.path:
+    sys.path.append(root_dir)﻿import streamlit as st
 import requests
 import socket
 from auth import logout, change_password
 from language import get_text 
+# အဟောင်း (Error ဖြစ်စေသောနေရာ)
+# from components.supabase_logic import sync_to_supabase
 
+# အသစ် (ဤသို့ပြင်ပါ)
+from supabase_logic import sync_to_supabase
 # ==========================================
 # 2. Helper Functions (Connection & Navigation)
 # ==========================================
