@@ -1,99 +1,128 @@
+import streamlit as st
+import socket
 import sys
 import os
 
-# Root directory ကို path ထဲသို့ ထည့်ခြင်း
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir = os.path.dirname(current_dir)
-if root_dir not in sys.path:
-    sys.path.append(root_dir)﻿import streamlit as st
-import requests
-import socket
-from auth import logout, change_password
-from language import get_text 
-# အဟောင်း (Error ဖြစ်စေသောနေရာ)
-# from components.supabase_logic import sync_to_supabase
+# ==========================================
+# PATH SETUP
+# ==========================================
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 # ==========================================
-# 2. Helper Functions (Connection & Navigation)
+# IMPORTS
+# ==========================================
+from auth import logout, change_password
+from language import get_text
+from components.supabase_logic import sync_to_supabase
+
+# ==========================================
+# INTERNET CHECK
 # ==========================================
 def _check_internet():
-    """အင်တာနက် ချိတ်ဆက်မှု ရှိမရှိ စစ်ဆေးခြင်း (မြန်ဆန်စေရန် socket သုံးထားသည်)"""
     try:
-        # Google DNS ကို 2 စက္ကန့်အတွင်း စမ်းသပ်ခြင်း
         socket.create_connection(("8.8.8.8", 53), timeout=2)
         return True
     except OSError:
         return False
 
+# ==========================================
+# MENU CHANGE
+# ==========================================
 def _handle_menu_change(selected_menu):
-    """Menu ပြောင်းလဲမှုကို စီမံခန့်ခွဲခြင်း"""
     st.session_state.menu = selected_menu
-    st.query_params["menu"] = selected_menu
+    try:
+        st.query_params["menu"] = selected_menu
+    except Exception:
+        pass
     st.rerun()
 
 # ==========================================
-# 3. Main Run Module (Sidebar UI)
+# SIDEBAR UI
 # ==========================================
 def show_sidebar():
-    """Sidebar UI ကို Render လုပ်ပေးသော Main module"""
-    with st.sidebar:
-        # Internet Status Indicator (အပေါ်ဆုံးတွင်ထားခြင်းဖြင့် ချက်ချင်းသိနိုင်သည်)
-        if _check_internet():
-            st.success(get_text("Online", st.session_state.get("lang")))
-        else:
-            st.error(get_text("Offline", st.session_state.get("lang")))
+    # Session Defaults
+    if "lang" not in st.session_state:
+        st.session_state.lang = "MY"
+    if "menu" not in st.session_state:
+        st.session_state.menu = "POS System"
 
-        # Language Switcher
-        lang_options = ["MY", "EN"]
-        current_lang = st.session_state.get("lang", "MY")
-        lang = st.selectbox("🌐 Language", lang_options, index=lang_options.index(current_lang))
-        
-        if lang != current_lang:
-            st.session_state.lang = lang
-            st.rerun()
-            
-        st.write(f"👤 User: **{st.session_state.get('username', 'Admin')}**")
-        
-        # Sync Data (Offline-First စနစ်အတွက် အရေးကြီးသည်)
+    with st.sidebar:
+        # --- STATUS AREA ---
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if _check_internet():
+                st.success("🟢 Online")
+            else:
+                st.error("🔴 Offline")
+        with col2:
+            lang_options = ["MY", "EN"]
+            current_lang = st.session_state.lang
+            selected_lang = st.selectbox("🌐", lang_options, index=lang_options.index(current_lang), label_visibility="collapsed")
+            if selected_lang != current_lang:
+                st.session_state.lang = selected_lang
+                st.rerun()
+
+        st.divider()
+
+        # --- USER INFO ---
+        username = st.session_state.get("username", "User")
+        role = st.session_state.get("user_role", "Cashier")
+        st.info(f"👤 **{username}**\n\n🛡️ Role : **{role}**")
+
+        # --- SYNC DATA ---
         if st.button("🔄 Sync Data Now", key="sync_btn", use_container_width=True):
             if _check_internet():
-                from sales_data import sync_to_supabase
-                with st.spinner("Syncing..."):
-                    sync_to_supabase()
-                st.success("✅ Success")
+                try:
+                    with st.spinner("Syncing..."):
+                        sync_to_supabase()
+                    st.success("✅ Sync Complete")
+                except Exception as e:
+                    st.error(f"❌ Sync Failed\n\n{e}")
             else:
                 st.warning("⚠️ No Internet Connection")
-        
-        st.markdown("---")
-        
-        # Menu Navigation
-        menu_options = ["POS System", "Inventory", "Reports", "Refund", "Profit & Loss"]
-        current_menu = st.session_state.get("menu", "POS System")
+
+        st.divider()
+
+        # --- ROLE MENU ---
+        menu_items = ["POS System"]
+        if role in ["Admin", "Inventory Manager"]:
+            menu_items.append("Inventory")
+        if role == "Admin":
+            menu_items.extend(["Reports", "Profit & Loss", "User Management"])
+        menu_items.append("Refund")
+
+        current_menu = st.session_state.menu
+        if current_menu not in menu_items:
+            current_menu = "POS System"
+            st.session_state.menu = current_menu
+
         selected_menu = st.radio(
-            "📌 Main Menu", 
-            menu_options, 
-            index=menu_options.index(current_menu) if current_menu in menu_options else 0
+            "📌 Main Menu",
+            menu_items,
+            index=menu_items.index(current_menu),
+            key="main_menu_radio"
         )
-        
+
         if selected_menu != current_menu:
             _handle_menu_change(selected_menu)
-        
-        st.markdown("---")
-        
-        # Password & Logout Management
-        if st.button("🔑 Change Password", key="chg_pwd", use_container_width=True): 
-            st.session_state.show_pwd_change = True
-            
-        if st.session_state.get("show_pwd_change", False):
-            change_password()
-            if st.button("❌ Close Password", key="cls_pwd"): 
-                st.session_state.show_pwd_change = False
-                st.rerun()
-        
-        if st.button("🚪 Log Out", key="out_btn", use_container_width=True): 
-            logout()
 
-# ==========================================
-# Note on Unicode (UTF-8)
-# ==========================================
-# ဤဖိုင်ကို သိမ်းဆည်းရာတွင် encoding="utf-8" ကို သုံးစွဲရန် မမေ့ပါနှင့်။
+        st.divider()
+
+        # --- PASSWORD CHANGE ---
+        if st.button("🔑 Change Password", key="chg_pwd", use_container_width=True):
+            st.session_state.show_pwd_change = True
+
+        if st.session_state.get("show_pwd_change", False):
+            with st.container(border=True):
+                change_password()
+                if st.button("❌ Close", key="cls_pwd", use_container_width=True):
+                    st.session_state.show_pwd_change = False
+                    st.rerun()
+
+        # --- LOGOUT ---
+        if st.button("🚪 Log Out", key="logout_btn", use_container_width=True):
+            logout()
