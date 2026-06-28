@@ -15,7 +15,7 @@ from components.profit_loss import show_profit_loss
 from components.refund import show_refund
 from components.receipt_generator import show_receipt 
 from components.supabase_logic import insert_sale_to_supabase
-
+from components.supabase_logic import sync_to_supabase
 def setup_page():
     st.set_page_config(page_title="Barcode POS System", layout="wide", initial_sidebar_state="expanded")
 
