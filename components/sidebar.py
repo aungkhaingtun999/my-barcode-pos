@@ -13,8 +13,6 @@ from language import get_text
 # အဟောင်း (Error ဖြစ်စေသောနေရာ)
 # from components.supabase_logic import sync_to_supabase
 
-# အသစ် (ဤသို့ပြင်ပါ)
-from components.supabase_logic import sync_to_supabase
 # ==========================================
 # 2. Helper Functions (Connection & Navigation)
 # ==========================================
