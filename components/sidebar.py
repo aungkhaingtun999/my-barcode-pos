@@ -1,19 +1,15 @@
-import streamlit as st
-import socket
 import sys
 import os
+# Path ကို သေချာစေရန်
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# ==========================================
-# PATH SETUP
-# ==========================================
-# sidebar.py သည် components folder ထဲတွင် ရှိနေသောကြောင့် 
-# Root folder ကို ရှာဖွေပြီး path ထဲသို့ ထည့်ခြင်း
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(CURRENT_DIR)
-
-if ROOT_DIR not in sys.path:
-    sys.path.insert(0, ROOT_DIR)
-
+import streamlit as st
+import socket
+from auth import logout, change_password
+from language import get_text
+# 'components.' ကို ဖြုတ်ပြီး '.' (Relative import) သုံးပါ
+from .supabase_logic import sync_to_supabase
+   
 # ==========================================
 # IMPORTS
 # ==========================================
