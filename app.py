@@ -1,9 +1,7 @@
 import sys
 import os
-
-# Root directory ကို Path ထဲသို့ သေချာထည့်ခြင်း
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+import streamlit as st
 import streamlit as st
 from auth import check_password, init_auth_state
 from utils import init_app_state
