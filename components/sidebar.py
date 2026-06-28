@@ -14,7 +14,7 @@ from language import get_text
 # from components.supabase_logic import sync_to_supabase
 
 # အသစ် (ဤသို့ပြင်ပါ)
-from supabase_logic import sync_to_supabase
+from components.supabase_logic import sync_to_supabase
 # ==========================================
 # 2. Helper Functions (Connection & Navigation)
 # ==========================================
