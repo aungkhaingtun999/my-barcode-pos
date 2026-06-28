@@ -1,8 +1,11 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import streamlit as st
-import streamlit as st
+# components ထဲက sidebar ကိုခေါ်ပါ
+from components.sidebar import show_sidebar
+
 from auth import check_password, init_auth_state
 from utils import init_app_state
 from config import init_session
