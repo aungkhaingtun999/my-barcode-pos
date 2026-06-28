@@ -6,6 +6,8 @@ import os
 # ==========================================
 # PATH SETUP
 # ==========================================
+# sidebar.py သည် components folder ထဲတွင် ရှိနေသောကြောင့် 
+# Root folder ကို ရှာဖွေပြီး path ထဲသို့ ထည့်ခြင်း
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
 
@@ -17,6 +19,10 @@ if ROOT_DIR not in sys.path:
 # ==========================================
 from auth import logout, change_password
 from language import get_text
+
+# အရေးကြီးဆုံးပြင်ဆင်ချက်: 
+# components folder အတွင်းမှ module ကိုခေါ်ရန် 'components.' ကို အသုံးပြုပါ
+# sys.path ထဲတွင် ROOT_DIR ရှိနေပြီဖြစ်သောကြောင့် ဤနည်းလမ်းသည် မှန်ကန်ပါသည်
 from components.supabase_logic import sync_to_supabase
 
 # ==========================================
