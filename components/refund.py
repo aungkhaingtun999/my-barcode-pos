@@ -1,56 +1,369 @@
 import streamlit as st
 import json
-from components.supabase_logic import supabase, execute_refund, log_refund
+
+from components.supabase_logic import (
+    supabase,
+    execute_refund
+)
+
+
+
+# ==========================================
+# REFUND MANAGER
+# ==========================================
 
 def show_refund():
-    st.title("🔄 Refund Manager")
 
-    # [အချက် ၁] Session တွေကို ကြိုတင်သတ်မှတ်ထားခြင်း
-    if "current_refund_inv" not in st.session_state: st.session_state.current_refund_inv = None
-    if "msg" not in st.session_state: st.session_state.msg = None
 
-    # [အချက် ၂] Message ပြသခြင်း
-    if st.session_state.msg:
-        st.success(st.session_state.msg)
-        st.session_state.msg = None 
+    st.title(
+        "🔄 Refund Manager"
+    )
 
-    # Data Fetch လုပ်ခြင်း (Error မတက်အောင် စစ်ဆေးပေးထားသည်)
-    try:
-        sales_data = supabase.table("sales").select("*").order("id", desc=True).execute().data
-    except Exception as e:
-        st.error(f"Error fetching data: {e}")
+
+    # ======================================
+    # SESSION
+    # ======================================
+
+    if "current_refund_inv" not in st.session_state:
+
+        st.session_state.current_refund_inv = None
+
+
+    if "refund_msg" not in st.session_state:
+
+        st.session_state.refund_msg = None
+
+
+
+    if st.session_state.refund_msg:
+
+        st.success(
+            st.session_state.refund_msg
+        )
+
+        st.session_state.refund_msg = None
+
+
+
+    # ======================================
+    # CHECK DATABASE
+    # ======================================
+
+    if not supabase:
+
+        st.error(
+            "❌ Supabase Connection မရှိပါ"
+        )
+
         return
-    
-    options = {f"📄 {r.get('receipt_no')}": r for r in sales_data}
-    selected = st.selectbox("🔍 Select Receipt:", [""] + list(options.keys()))
-    
+
+
+
+    # ======================================
+    # LOAD SALES
+    # ======================================
+
+    try:
+
+        response = (
+            supabase
+            .table("sales")
+            .select("*")
+            .order(
+                "created_at",
+                desc=True
+            )
+            .execute()
+        )
+
+
+        sales_data = response.data or []
+
+
+    except Exception as e:
+
+        st.error(
+            f"Sales Load Error : {e}"
+        )
+
+        return
+
+
+
+
+    if not sales_data:
+
+        st.info(
+            "အရောင်းမှတ်တမ်း မရှိပါ"
+        )
+
+        return
+
+
+
+    # ======================================
+    # RECEIPT SELECT
+    # ======================================
+
+    receipt_map = {
+
+        f"📄 {x.get('receipt_no')}":
+        x
+
+        for x in sales_data
+
+    }
+
+
+
+    selected = st.selectbox(
+
+        "🔍 Select Receipt",
+
+        [
+            ""
+        ]
+        +
+        list(receipt_map.keys())
+
+    )
+
+
+
     if selected:
-        st.session_state.current_refund_inv = options[selected]
-    
-    inv = st.session_state.current_refund_inv
-    
-    if inv:
-        items = json.loads(inv.get('item', '[]')) if isinstance(inv.get('item'), str) else inv.get('item', [])
 
-        # [အချက် ၃] Form အလုပ်လုပ်အောင် ပြင်ဆင်ခြင်း
-        with st.form("refund_form"):
-            # key တန်ဖိုး မဖြစ်မနေ ထည့်ပေးရမည်
-            check_states = {i: st.checkbox(f"{item.get('product_name', 'Item')}", key=f"item_{i}") for i, item in enumerate(items)}
-            submitted = st.form_submit_button("⚠️ Process Refund")
-            
-            if submitted:
-                # သင်၏ Refund Logic ကို ဒီမှာ ထည့်ပါ
-                st.session_state.msg = "✅ Refund processed successfully!"
-                st.rerun() 
 
-        st.divider()
-        # [အချက် ၄] Button တွေ အလုပ်လုပ်အောင် လုပ်ခြင်း
-        if st.button("🚫 Void Entire Receipt"):
-            supabase.table("sales").delete().eq("id", inv['id']).execute()
-            st.session_state.msg = "⚠️ Receipt voided!"
-            st.session_state.current_refund_inv = None
+        st.session_state.current_refund_inv = (
+            receipt_map[selected]
+        )
+
+
+
+    invoice = (
+        st.session_state.current_refund_inv
+    )
+
+
+
+    if not invoice:
+
+        return
+
+
+
+    # ======================================
+    # ITEMS
+    # ======================================
+
+    try:
+
+        items = invoice.get(
+            "item",
+            []
+        )
+
+
+        if isinstance(
+            items,
+            str
+        ):
+
+            items = json.loads(
+                items
+            )
+
+
+    except:
+
+        items=[]
+
+
+
+    if not items:
+
+        st.warning(
+            "ဒီ Invoice မှာ Item မတွေ့ပါ"
+        )
+
+        return
+
+
+
+
+    st.subheader(
+        f"Invoice : {invoice.get('receipt_no')}"
+    )
+
+
+    st.write(
+        f"Customer : {invoice.get('customer_name','Walk-in')}"
+    )
+
+
+
+    st.divider()
+
+
+
+    # ======================================
+    # REFUND FORM
+    # ======================================
+
+
+    with st.form(
+        "refund_form"
+    ):
+
+
+        selected_items=[]
+
+
+
+        for i,item in enumerate(items):
+
+
+            checked = st.checkbox(
+
+                (
+                    f"{item.get('product_name')}"
+                    f" | Qty : {item.get('qty',1)}"
+                    f" | Price : {item.get('sell_price',0)}"
+                ),
+
+                key=f"refund_{i}"
+
+            )
+
+
+            if checked:
+
+                selected_items.append(
+                    item
+                )
+
+
+
+        submit = st.form_submit_button(
+            "⚠️ Process Refund"
+        )
+
+
+
+        if submit:
+
+
+            if not selected_items:
+
+                st.warning(
+                    "Refund Item ရွေးပါ"
+                )
+
+                return
+
+
+
+            try:
+
+
+                amount = execute_refund(
+
+                    invoice,
+
+                    selected_items
+
+                )
+
+
+
+                st.session_state.refund_msg = (
+
+                    f"✅ Refund Complete : "
+                    f"{amount:,.0f} MMK"
+
+                )
+
+
+
+                st.session_state.current_refund_inv=None
+
+
+
+                st.rerun()
+
+
+
+            except Exception as e:
+
+
+                st.error(
+                    f"Refund Error : {e}"
+                )
+
+
+
+    st.divider()
+
+
+
+    # ======================================
+    # VOID RECEIPT
+    # ======================================
+
+
+    if st.button(
+        "🚫 Void Entire Receipt",
+        use_container_width=True
+    ):
+
+
+        try:
+
+
+            supabase.table(
+                "sales"
+            ).delete().eq(
+
+                "id",
+
+                invoice["id"]
+
+            ).execute()
+
+
+
+            st.session_state.refund_msg = (
+                "⚠️ Receipt Voided"
+            )
+
+
+            st.session_state.current_refund_inv=None
+
+
             st.rerun()
-            
-        if st.button("❌ Exit"):
-            st.session_state.current_refund_inv = None
-            st.rerun()
+
+
+
+        except Exception as e:
+
+
+            st.error(
+                f"Void Error : {e}"
+            )
+
+
+
+
+    # ======================================
+    # EXIT
+    # ======================================
+
+
+    if st.button(
+        "❌ Exit",
+        use_container_width=True
+    ):
+
+
+        st.session_state.current_refund_inv=None
+
+        st.rerun()
