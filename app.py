@@ -90,9 +90,7 @@ def main():
         if st.button("Close Receipt"):
             st.session_state.receipt = None
             st.session_state.receipt_totals = None
-            #app.py ထဲတစ်ခါတည်း run:
-            st.cache_data.clear()
-            st.session_state.clear()
+            
             st.rerun()
 
 if __name__ == "__main__":
