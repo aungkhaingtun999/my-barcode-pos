@@ -19,7 +19,7 @@ def _calculate_detailed_profit(sales, products):
     for sale in sales:
 
     # Supabase dict format
-    if isinstance(sale, dict):
+        if isinstance(sale, dict):
 
         items_json = sale.get("items", [])
         totals_json = sale.get("totals", {})
