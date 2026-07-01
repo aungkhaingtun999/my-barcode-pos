@@ -17,10 +17,18 @@ def _calculate_detailed_profit(sales, products):
     product_map = {str(p.get('barcode')): p for p in products}
     
     for sale in sales:
-        # sale variable သည် tuple ဖြစ်သည်
-        # sales table schema: (id, receipt_no, sale_date, items, totals, ...)
-        items_json = sale[3]  # Items
-        totals_json = sale[4] # Totals
+
+    # Supabase dict format
+    if isinstance(sale, dict):
+
+        items_json = sale.get("items", [])
+        totals_json = sale.get("totals", {})
+
+    else:
+
+        # old tuple format support
+        items_json = sale[3]
+        totals_json = sale[4]
         
         try:
             # JSON string ကို Dictionary သို့ ပြောင်းခြင်း
