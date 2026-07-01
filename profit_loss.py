@@ -17,10 +17,14 @@ def _calculate_detailed_profit(sales, products):
     product_map = {str(p.get('barcode')): p for p in products}
     
     for sale in sales:
-        # sale variable သည် tuple ဖြစ်သည်
-        # sales table schema: (id, receipt_no, sale_date, items, totals, ...)
-        items_json = sale[3]  # Items
-        totals_json = sale[4] # Totals
+
+    receipt_no = sale.get("receipt_no", "")
+    date = sale.get("date", "")
+
+    items = sale.get("items", [])
+    totals = sale.get("totals", {})
+
+    grand_total = totals.get("grand_total", 0)
         
         try:
             # JSON string ကို Dictionary သို့ ပြောင်းခြင်း
