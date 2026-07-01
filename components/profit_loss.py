@@ -81,16 +81,44 @@ def show_profit_loss():
     # ပြေစာစာရင်းကို လှပသော Table ပုံစံပြသရန်
     formatted_sales = []
     for sale in sales:
-        try:
-            totals = json.loads(sale[4]) if isinstance(sale[4], str) else sale[4]
-            formatted_sales.append({
-                "ပြေစာအမှတ်": sale[1],
-                "ရက်စွဲ": sale[2],
-                "စုစုပေါင်း (MMK)": float(totals.get("grand_total", 0)),
-                "ပေးချေမှု": totals.get("payment_method", "Cash")
-            })
-        except:
-            continue
+    try:
+
+        if isinstance(sale, dict):
+
+            totals = sale.get("totals", {})
+
+            receipt_no = sale.get("receipt_no", "")
+            sale_date = sale.get("sale_date", "")
+
+        else:
+
+            totals = sale[4]
+            receipt_no = sale[1]
+            sale_date = sale[2]
+
+
+        totals = json.loads(totals) if isinstance(totals, str) else totals
+
+
+        formatted_sales.append({
+
+            "ပြေစာအမှတ်": receipt_no,
+
+            "ရက်စွဲ": sale_date,
+
+            "စုစုပေါင်း (MMK)": float(
+                totals.get("grand_total", 0)
+            ),
+
+            "ပေးချေမှု": totals.get(
+                "payment_method",
+                "Cash"
+            )
+
+        })
+
+    except:
+        continue
     
     if formatted_sales:
         df = pd.DataFrame(formatted_sales)
