@@ -12,52 +12,97 @@ from config import APP_SETTINGS
 # 2. Helper Functions (Advanced Calculation)
 # ==========================================
 def _calculate_detailed_profit(sales, products):
+
     total_sales = 0
     total_cost = 0
-    product_map = {str(p.get('barcode')): p for p in products}
-    
-        for sale in sales:
 
-    # Supabase dict format
-            if isinstance(sale, dict):
-
-        items_json = sale.get("items", [])
-        totals_json = sale.get("totals", {})
-
-    else:
-
-        # old tuple format support
-        items_json = sale[3]
-        totals_json = sale[4]
-        
-        try:
-            # JSON string ကို Dictionary သို့ ပြောင်းခြင်း
-            items_data = json.loads(items_json) if isinstance(items_json, str) else items_json
-            totals_data = json.loads(totals_json) if isinstance(totals_json, str) else totals_json
-            
-            # totals_data က list ဖြစ်နေရင် ပထမဆုံး item ကို ယူရန်
-            if isinstance(totals_data, list): 
-                totals_data = totals_data[0]
-            
-            # Grand Total တွက်ခြင်း
-            total_sales += float(totals_data.get("grand_total", 0))
-            
-            # Cost တွက်ခြင်း
-            for item in items_data:
-                barcode = str(item.get('barcode'))
-                qty = int(item.get('qty', 1))
-                prod = product_map.get(barcode, {})
-                buy_price = float(prod.get('buy_price', 0))
-                total_cost += (buy_price * qty)
-        except Exception as e:
-            continue
-            
-    return {
-        "total_sales": total_sales,
-        "total_cost": total_cost,
-        "net_profit": total_sales - total_cost
+    product_map = {
+        str(p.get("barcode")): p
+        for p in products
     }
 
+
+    for sale in sales:
+
+        if isinstance(sale, dict):
+
+            items_json = sale.get("items", [])
+            totals_json = sale.get("totals", {})
+
+        else:
+
+            items_json = sale[3]
+            totals_json = sale[4]
+
+
+        try:
+
+            items_data = (
+                json.loads(items_json)
+                if isinstance(items_json, str)
+                else items_json
+            )
+
+            totals_data = (
+                json.loads(totals_json)
+                if isinstance(totals_json, str)
+                else totals_json
+            )
+
+
+            if isinstance(totals_data, list):
+                totals_data = totals_data[0]
+
+
+            total_sales += float(
+                totals_data.get(
+                    "grand_total",
+                    0
+                )
+            )
+
+
+            for item in items_data:
+
+                barcode = str(
+                    item.get("barcode")
+                )
+
+                qty = int(
+                    item.get("qty", 1)
+                )
+
+                prod = product_map.get(
+                    barcode,
+                    {}
+                )
+
+                buy_price = float(
+                    prod.get(
+                        "buy_price",
+                        0
+                    )
+                )
+
+                total_cost += (
+                    buy_price * qty
+                )
+
+
+        except Exception:
+
+            continue
+
+
+    return {
+
+        "total_sales": total_sales,
+
+        "total_cost": total_cost,
+
+        "net_profit": total_sales - total_cost
+
+    }
 # ==========================================
 # 3. Main Run Module (Profit & Loss UI)
 # ==========================================
