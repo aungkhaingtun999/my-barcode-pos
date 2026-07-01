@@ -54,16 +54,12 @@ def clear_cache():
 # ==========================================
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=60)
 
 def get_products_cached():
 
-
     if not supabase:
-
         return []
-
-
 
     result = (
         supabase
@@ -72,9 +68,7 @@ def get_products_cached():
         .execute()
     )
 
-
     return result.data or []
-
 
 
 
