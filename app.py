@@ -20,6 +20,8 @@ from components.refund import show_refund
 from components.receipt_generator import show_receipt 
 from components.supabase_logic import insert_sale_to_supabase, sync_to_supabase
 from components.user_management import show_user_management
+st.cache_data.clear()
+st.session_state.clear()
 
 
 def setup_page():
