@@ -341,32 +341,28 @@ def execute_refund(
 
 
     supabase.table(
-        "refunds"
-    ).insert(
+    "refunds"
+).insert(
 
-        {
+    {
 
-        "receipt_no":
-            invoice["receipt_no"],
-
-
-        "refund_amount":
-            amount,
+    "receipt_no":
+        invoice["receipt_no"],
 
 
-        "reason":
-            json.dumps(
-                items,
-                ensure_ascii=False
-            ),
+    "refund_amount":
+        amount,
 
 
-        "created_at":
-            datetime.now().isoformat()
+    "reason":
+        json.dumps(
+            items,
+            ensure_ascii=False
+        )
 
-        }
+    }
 
-    ).execute()
+).execute()
 
 
 
