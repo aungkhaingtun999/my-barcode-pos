@@ -16,7 +16,7 @@ def _calculate_detailed_profit(sales, products):
     total_cost = 0
     product_map = {str(p.get('barcode')): p for p in products}
     
-    for sale in sales:
+        for sale in sales:
 
     # Supabase dict format
         if isinstance(sale, dict):
