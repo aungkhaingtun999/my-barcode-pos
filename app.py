@@ -19,6 +19,8 @@ from components.profit_loss import show_profit_loss
 from components.refund import show_refund
 from components.receipt_generator import show_receipt 
 from components.supabase_logic import insert_sale_to_supabase, sync_to_supabase
+from components.user_management import show_user_management
+
 
 def setup_page():
     st.set_page_config(page_title="Barcode POS System", layout="wide", initial_sidebar_state="expanded")
@@ -35,16 +37,34 @@ def auto_sync_on_start():
                     break
 
 def run_router():
-    menu_map = {
-        "POS System": show_pos_system,
-        "Inventory": show_inventory,
-        "Reports": show_reports,
-        "Profit & Loss": show_profit_loss, 
-        "Refund": show_refund,
-    }
-    current_menu = st.session_state.get("menu", "POS System")
-    menu_map.get(current_menu, show_pos_system)()
 
+    menu_map = {
+
+        "POS System": show_pos_system,
+
+        "Inventory": show_inventory,
+
+        "Reports": show_reports,
+
+        "Profit & Loss": show_profit_loss,
+
+        "Refund": show_refund,
+
+        "User Management": show_user_management,
+
+    }
+
+
+    current_menu = st.session_state.get(
+        "menu",
+        "POS System"
+    )
+
+
+    menu_map.get(
+        current_menu,
+        show_pos_system
+    )()
 def main():
     setup_page()
     init_auth_state()
