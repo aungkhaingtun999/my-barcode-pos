@@ -85,8 +85,14 @@ def show_profit_loss():
     # ပြေစာစာရင်းကို လှပသော Table ပုံစံပြသရန်
     formatted_sales = []
     for sale in sales:
-        try:
-            totals = json.loads(sale[4]) if isinstance(sale[4], str) else sale[4]
+
+    receipt_no = sale.get("receipt_no", "")
+    date = sale.get("date", "")
+
+    items = sale.get("items", [])
+    totals = sale.get("totals", {})
+
+    grand_total = totals.get("grand_total", 0) if isinstance(sale[4], str) else sale[4]
             formatted_sales.append({
                 "ပြေစာအမှတ်": sale[1],
                 "ရက်စွဲ": sale[2],
